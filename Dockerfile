@@ -1,20 +1,21 @@
-# syntax=docker/dockerfile
-
-FROM arm64v8/openjdk:17-ea-17-jdk
-
-# thu muc lam viec
-# working directory
+# syntax=docker/dockerfile:1
+FROM arm64v8/openjdk:17-oraclelinux8 as base
 WORKDIR /app
-
-#copy from your Host(PC) to container
 COPY .mvn/ .mvn
-COPY mvnw ./
-COPY pom.xml ./
-
-#run this inside the image
-RUN ./mvnw dependency:go-offline
+COPY mvnw pom.xml ./
+RUN ./mvnw dependency:resolve
 COPY src ./src
-CMD ["./mvnw spring-boot:run"]
+
+FROM base as development
+CMD ["./mvnw", "spring-boot:run", "-Dspring-boot.run.profiles=postgres"]
+
+FROM base as build
+RUN ./mvnw package
+
+FROM arm64v8/openjdk:17-oraclelinux8 as production
+EXPOSE 8087
+COPY --from=build /app/target/talan-*.jar /talan.jar
+CMD ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/talan.jar"]
 
 
 

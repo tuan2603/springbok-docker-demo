@@ -13,6 +13,6 @@ public class StudentController {
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
     //http://localhost:8089/students/hello
     public String hello(ModelMap modelMap) {
-        return "Hello world";
+        return "Hello world, how are you";
     }
 }
